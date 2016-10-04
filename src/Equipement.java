@@ -1,5 +1,6 @@
 import java.security.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Equipement 
 {
@@ -7,7 +8,7 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	private String monNom; // Identite de l’equipement.
 	private int monPort; // Le numéro de port d’ecoute.
-	private HashMap<String, PublicKey> ca; 
+	private HashMap<Equipement,Certificat> ca; 
 	private HashMap<String, PublicKey> da;
 	
 	Equipement (String nom, int port) throws Exception 
@@ -20,7 +21,7 @@ public class Equipement
 		this.monCert=new Certificat(this.monNom, this.maCle, 10);
 		this.autoVerif();
 		this.affichage();
-		this.ca=new HashMap<String, PublicKey>();
+		this.ca=new HashMap<Equipement,Certificat>();
 		this.da=new HashMap<String, PublicKey>();
 	}
 	
@@ -73,4 +74,26 @@ public class Equipement
 			System.out.println("Certificat autosigné non vérifié.");
 		}
 	}
+	private void certification(Equipement other)
+	{
+		// other possède un certificat de this portant sur la clé publique de other
+		Certificat certif = new Certificat(this.monNom(), other.monNom(), other.maClePub(), this.maCle.Privee(), 10);
+		// on vérifie
+		if (certif.verifCertif(this.maClePub())) // si le certificat est vérifié, on ajoute this au CA de other
+		{
+			other.ajoutCA(this, certif);
+			System.out.println("Le certificat est valide.");
+		}
+		else
+		{
+			System.out.println("Le certificat n'est pas valide.");
+		}
+	}
+	public void ajoutCA(Equipement other, Certificat certif)
+	{
+		// ajoute dans le CA de this, other
+		this.ca.put(other, certif);
+	}
+
+	
 }
