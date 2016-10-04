@@ -1,6 +1,7 @@
 import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Equipement 
 {
@@ -8,7 +9,7 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	private String monNom; // Identite de l’equipement.
 	private int monPort; // Le numéro de port d’ecoute.
-	private HashMap<Equipement,Certificat> ca; 
+	private HashMap<String,HashMap<PublicKey, Certificat>> ca; 
 	private HashMap<String, PublicKey> da;
 	
 	Equipement (String nom, int port) throws Exception 
@@ -18,10 +19,10 @@ public class Equipement
 		this.monNom=nom;
 		this.monPort=port;
 		this.maCle= new PaireClesRSA();
-		this.monCert=new Certificat(this.monNom, this.maCle, 10);
+		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10);
 		this.autoVerif();
 		this.affichage();
-		this.ca=new HashMap<Equipement,Certificat>();
+		this.ca=new HashMap<String,HashMap<PublicKey,Certificat>>();
 		this.da=new HashMap<String, PublicKey>();
 	}
 	
@@ -33,6 +34,11 @@ public class Equipement
 	public void affichage_ca() 
 	{
 	// Affichage de la liste des équipements de CA.
+		for (Entry<String, HashMap<PublicKey, Certificat>> entry : this.ca.entrySet())
+		{
+			System.out.println(entry);
+			System.out.println()
+		}
 	}
 	
 	public void affichage() 
@@ -91,8 +97,10 @@ public class Equipement
 	}
 	public void ajoutCA(Equipement other, Certificat certif)
 	{
+		HashMap<PublicKey, Certificat> pubCertif = new HashMap();
+		pubCertif.put(other.maClePub(), certif);
 		// ajoute dans le CA de this, other
-		this.ca.put(other, certif);
+		this.ca.put(other.monNom(), pubCertif);
 	}
 
 	

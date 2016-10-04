@@ -16,55 +16,6 @@ public class Certificat {
 	static private BigInteger seqnum = BigInteger.ZERO;
 	public X509Certificate x509;
 	
-	Certificat(String nom, PaireClesRSA cle, int validityDays) 
-	{		
-		// On recupere la cle publique et la cle privee :
-		PublicKey pubkey = cle.Publique();
-		PrivateKey privkey = cle.Privee();
-		// On cree la structure qui va nous permettre de creer le certificat
-		X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
-		// Le certificat sera valide pour 10 jours
-		Calendar expiry = Calendar.getInstance();
-		Date startDate = expiry.getTime();
-		expiry.add(Calendar.DAY_OF_YEAR, validityDays);
-		Date expiryDate = expiry.getTime();
-		certGen.setNotBefore(startDate);
-		certGen.setNotAfter(expiryDate);
-		// On le positionne dans le futur certificat
-		seqnum=seqnum.add(BigInteger.ONE);
-		certGen.setSerialNumber(seqnum);
-		// Le nom du proprietaire et du certificateur :
-		// ici, les memes car auto-signe.
-		X500Principal cnName = new X500Principal("CN="+nom);
-		certGen.setSubjectDN(cnName);
-		certGen.setIssuerDN(cnName);
-		// L'algorithme de signature utilise pour la certification
-		certGen.setSignatureAlgorithm("sha1WithRSA");
-		// La cle a certifier
-		certGen.setPublicKey(pubkey);
-		// On calcule le certificat au format X509 !
-		try {
-			this.x509 = certGen.generate(privkey, "BC");
-		} catch (CertificateEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SignatureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	Certificat(String issuer, String subject, PublicKey clePub, PrivateKey signature, int validityDays)
 	{
 		// On recupere la cle publique et la cle privee :
