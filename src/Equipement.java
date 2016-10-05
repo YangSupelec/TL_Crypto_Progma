@@ -7,8 +7,8 @@ public class Equipement
 {
 	private PaireClesRSA maCle; // La paire de cle de l’equipement.
 	private Certificat monCert; // Le certificat auto-signe.
-	private String monNom; // Identite de l’equipement.
-	private int monPort; // Le numéro de port d’ecoute.
+	protected String monNom; // Identite de l’equipement.
+	protected int monPort; // Le numéro de port d’ecoute.
 	private HashMap<String,HashMap<PublicKey, Certificat>> ca; 
 	private HashMap<String, PublicKey> da;
 
@@ -119,6 +119,5 @@ public class Equipement
 	{
 		
 	}
-
 
 }
