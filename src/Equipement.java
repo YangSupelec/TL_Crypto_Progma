@@ -56,7 +56,7 @@ public class Equipement
 		// Affichage de l’ensemble des informations
 		// de l’équipement.
 		System.out.println("Cle Publique de "+this.monNom()+": Sun RSA public key, 512 bits");
-		System.out.println("modulus : "+this.maClePub());
+		System.out.println(this.maClePub());
 		System.out.println("Certificat de "+this.monNom());
 		this.monCert.affichage();
 	}
@@ -93,12 +93,20 @@ public class Equipement
 	private void certification(Equipement other)
 	{
 		// other possède un certificat de this portant sur la clé publique de other
-		Certificat certif = new Certificat(this.monNom(), other.monNom(), other.maClePub(), this.maCle.Privee(), 10);
+		Certificat certifA = new Certificat(this.monNom(), other.monNom(), other.maClePub(), this.maCle.Privee(), 10);
 		// on vérifie
-		if (certif.verifCertif(this.maClePub())) // si le certificat est vérifié, on ajoute this au CA de other
+		if (certifA.verifCertif(this.maClePub())) // si le certificat est vérifié, on ajoute this au CA de other
 		{
-			other.ajoutCA(this, certif);
-			System.out.println("Le certificat est valide.");
+			other.ajoutCA(this, certifA);
+			Certificat certifB = new Certificat(other.monNom(), this.monNom(), this.maClePub(), other.maCle.Privee(), 10);
+			if (certifB.verifCertif(other.maClePub()))
+			{
+				this.ajoutCA(other, certifB);
+			}
+			else
+			{
+				System.out.println("Le certificat n'est pas valide.");
+			}
 		}
 		else
 		{
