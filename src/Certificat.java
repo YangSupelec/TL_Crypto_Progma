@@ -96,7 +96,16 @@ public class Certificat {
 	}
 	public void affichage()
 	{
-		System.out.println(this);
+		System.out.println("\tVersion : "+this.x509.getVersion());
+		System.out.println("\tSerialNumber : "+this.x509.getSerialNumber());
+		System.out.println("\tIssuerDN : "+this.x509.getIssuerDN());
+		System.out.println("\tStart Date : "+this.x509.getNotBefore());
+		System.out.println("\tFinal Date : "+this.x509.getNotAfter());
+		System.out.println("\tSubjectDN : "+this.x509.getSubjectDN());
+		System.out.println("\tPublicKey : "+this.x509.getPublicKey());
+		System.out.println("\tSignature Algorithm : "+this.x509.getSigAlgName()
+);
+		System.out.println("\tSignature : "+this.x509.getSignature());
 	}
 
 }
