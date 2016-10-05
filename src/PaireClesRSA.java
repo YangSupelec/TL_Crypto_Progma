@@ -1,7 +1,17 @@
 import java.security.*;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 public class PaireClesRSA {
 	private KeyPair key;
+
+	static{
+		try{
+			Security.addProvider(new BouncyCastleProvider());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
 	
 	PaireClesRSA() 
 	{
@@ -20,13 +30,13 @@ public class PaireClesRSA {
 		// On genere la paire de cle :
 		this.key = kpg.generateKeyPair();
 	}
-	
+
 	public PublicKey Publique() 
 	{
 		// Recuperation de la clé publique
 		return this.key.getPublic();
 	}
-	
+
 	public PrivateKey Privee() 
 	{
 		// Recuperation de la clé privée
