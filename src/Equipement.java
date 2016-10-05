@@ -28,7 +28,7 @@ public class Equipement
 	
 	public void affichage_da() 
 	{
-// Affichage de la liste des équipements de DA.
+		// Affichage de la liste des équipements de DA.
 	}
 	
 	public void affichage_ca() 
