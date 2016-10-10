@@ -30,27 +30,31 @@ public class ClientEquipement extends Equipement{
 		try {
 			clientSocket = new Socket(ServerName,ServerPort); } 
 		catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 		// Creation des flux natifs et evolues
 		try {
-			NativeOut = clientSocket.getOutputStream(); oos = new ObjectOutputStream(NativeOut); NativeIn = clientSocket.getInputStream(); ois = new ObjectInputStream(NativeIn);
+			NativeOut = clientSocket.getOutputStream(); 
+			oos = new ObjectOutputStream(NativeOut); 
+			NativeIn = clientSocket.getInputStream(); 
+			ois = new ObjectInputStream(NativeIn);
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 		// Emission d’un String
 		try {
 			oos.writeObject(this.monNom); 
+			System.out.println("le client envoie son nom.");
 			oos.flush();
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 		// Reception d’un String
 		try {
 			String res = (String) ois.readObject(); 
 			System.out.println(res);
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 		// Fermeture des flux evolues et natifs
 		try {
@@ -59,13 +63,13 @@ public class ClientEquipement extends Equipement{
 			NativeIn.close(); 
 			NativeOut.close();
 		} catch (IOException e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 		// Fermeture de la connexion
 		try {
 			clientSocket.close(); 
 		} catch (IOException e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 		}
 	}
 }

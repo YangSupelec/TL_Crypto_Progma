@@ -123,9 +123,5 @@ public class Equipement
 			this.ca.put(other.monNom(), pubCertif);
 		}
 	}
-	public void sync()
-	{
-		
-	}
 
 }
