@@ -10,13 +10,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-<<<<<<< HEAD:src/client/ClientEquipement.java
 import core.Equipement;
 
 public class ClientEquipement extends Equipement{
-=======
-public class ClientEquipement extends Thread{
->>>>>>> 3a36c70121eca4083a21c55c06fcf49a0e1a1c27:src/ClientEquipement.java
 
 	int ServerPort;
 	String ServerName;
@@ -25,27 +21,14 @@ public class ClientEquipement extends Thread{
 	ObjectInputStream ois = null; 
 	OutputStream NativeOut = null; 
 	ObjectOutputStream oos = null;
-	Equipement equipement;
-
-	ClientEquipement(Equipement equipement, int serveurPort) throws Exception {
-		this.equipement = equipement;
-		this.ServerPort = serveurPort;
-	}
-<<<<<<< HEAD:src/client/ClientEquipement.java
 
 	ClientEquipement(String nom, int port, String serverName) throws Exception {
-		this(nom, port);
+		super(nom, port);
 		this.ServerName = serverName;
-=======
-	public void run()
-	{
-		this.startSpeaking();
->>>>>>> 3a36c70121eca4083a21c55c06fcf49a0e1a1c27:src/ClientEquipement.java
+		this.ServerPort = port;
 	}
-	
 
 	public void startSpeaking() {
-<<<<<<< HEAD:src/client/ClientEquipement.java
 		while (true) {    
 			try {  
 				// Creation de socket (TCP)
@@ -82,27 +65,16 @@ public class ClientEquipement extends Thread{
 					}  
 				}  
 			} 
-=======
-		// Creation de socket (TCP) 
-		try {
-			clientSocket = new Socket(ServerName,ServerPort);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
->>>>>>> 3a36c70121eca4083a21c55c06fcf49a0e1a1c27:src/ClientEquipement.java
 		}
 	}
 		// Creation des flux natifs et evolues
-<<<<<<< HEAD:src/client/ClientEquipement.java
 		/*try {
 			NativeOut = clientSocket.getOutputStream(); oos = new ObjectOutputStream(NativeOut); NativeIn = clientSocket.getInputStream(); ois = new ObjectInputStream(NativeIn);
-=======
 		try {
 			NativeOut = clientSocket.getOutputStream(); 
 			oos = new ObjectOutputStream(NativeOut); 
 			NativeIn = clientSocket.getInputStream(); 
 			ois = new ObjectInputStream(NativeIn);
->>>>>>> 3a36c70121eca4083a21c55c06fcf49a0e1a1c27:src/ClientEquipement.java
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -133,13 +105,6 @@ public class ClientEquipement extends Thread{
 		try {
 			clientSocket.close(); 
 		} catch (IOException e) {
-<<<<<<< HEAD:src/client/ClientEquipement.java
 			System.out.println(e.toString());
 		}*/
-}
-=======
-			e.printStackTrace();
-		}
 	}
-}
->>>>>>> 3a36c70121eca4083a21c55c06fcf49a0e1a1c27:src/ClientEquipement.java
