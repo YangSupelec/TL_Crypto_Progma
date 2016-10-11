@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerEquipement extends Equipement{
+public class ServerEquipement extends Thread{
 
 	ServerSocket serverSocket = null; 
 	Socket NewServerSocket = null; 
@@ -14,16 +14,24 @@ public class ServerEquipement extends Equipement{
 	ObjectInputStream ois = null; 
 	OutputStream NativeOut = null; 
 	ObjectOutputStream oos = null;
+	Equipement equipement;
+	int port;
 	
-	ServerEquipement(String nom, int port) throws Exception {
-		super(nom, port);
+	ServerEquipement(Equipement equipement) throws Exception {
+		this.equipement = equipement;
+		this.port = equipement.port();
 		// TODO Auto-generated constructor stub
 	}
+	public void run()
+	{
+		this.startListening();
+		
+	}
 
-	public void startListening(int port) {
+	public void startListening() {
 		// Creation de socket (TCP)
 		try {
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(this.port);
 		} catch (IOException e) {
 			e.printStackTrace();
 			
@@ -46,14 +54,13 @@ public class ServerEquipement extends Equipement{
 		// Reception d’un String
 		try {
 			String res = (String) ois.readObject(); 
-			System.out.println(res);
-			System.out.println("le serveur a recu le client" +res);
+			System.out.println("Reception Serveur : "+res);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		// Emission d’un String
 		try {
-			oos.writeObject(this.monNom); 
+			oos.writeObject(this.equipement.monNom()); 
 			oos.flush();
 		} catch (Exception e) {
 			e.printStackTrace();

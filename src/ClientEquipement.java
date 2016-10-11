@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class ClientEquipement extends Equipement{
+public class ClientEquipement extends Thread{
 
 	int ServerPort;
 	String ServerName;
@@ -14,21 +14,23 @@ public class ClientEquipement extends Equipement{
 	ObjectInputStream ois = null; 
 	OutputStream NativeOut = null; 
 	ObjectOutputStream oos = null;
+	Equipement equipement;
 
-	ClientEquipement(String nom, int port) throws Exception {
-		super(nom, port);
-		this.ServerPort = port;
+	ClientEquipement(Equipement equipement, int serveurPort) throws Exception {
+		this.equipement = equipement;
+		this.ServerPort = serveurPort;
+	}
+	public void run()
+	{
+		this.startSpeaking();
 	}
 	
-	ClientEquipement(String nom, int port, String serverName) throws Exception {
-		this(nom, port);
-		this.ServerName = serverName;
-	}
 
 	public void startSpeaking() {
 		// Creation de socket (TCP) 
 		try {
-			clientSocket = new Socket(ServerName,ServerPort); } 
+			clientSocket = new Socket(ServerName,ServerPort);
+		} 
 		catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -43,8 +45,7 @@ public class ClientEquipement extends Equipement{
 		}
 		// Emission d’un String
 		try {
-			oos.writeObject(this.monNom); 
-			System.out.println("le client envoie son nom.");
+			oos.writeObject(this.equipement.monNom()); 
 			oos.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -52,7 +53,7 @@ public class ClientEquipement extends Equipement{
 		// Reception d’un String
 		try {
 			String res = (String) ois.readObject(); 
-			System.out.println(res);
+			System.out.println("Reception Client : "+res);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

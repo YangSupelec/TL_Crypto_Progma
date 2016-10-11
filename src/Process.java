@@ -1,8 +1,9 @@
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class Process {
-	private static final int PORT_TV = 3044;
-	private static final int PORT_DVD = 3045;
+	private static final int PORT_TV = 3040;
+	private static final int PORT_DVD = 3041;
 
 	/**
 	 * @param args
@@ -11,16 +12,20 @@ public class Process {
 		// TODO Auto-generated method stub
 		//initOperation();
 		try {
-			ServerEquipement tv = new ServerEquipement("TV_Server", PORT_TV);
-			ClientEquipement dvd = new ClientEquipement("DVD_Client", PORT_DVD);
-			tv.startListening(PORT_DVD);
-			dvd.startSpeaking();
+			Equipement tv = new Equipement("TV_Server", PORT_TV);
+			Equipement dvd = new Equipement("DVD_Client", PORT_DVD);
+			ServerEquipement s_tv = new ServerEquipement(tv);
+			ClientEquipement c_dvd = new ClientEquipement(dvd, PORT_TV);
+			
+			s_tv.start();
+			TimeUnit.SECONDS.sleep(1);
+			c_dvd.start();
+			//tv.startListening(PORT_DVD);
+			//dvd.startSpeaking();
 			
 			
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			System.out.println(e.toString());
 			e.printStackTrace();
 		}
 	}

@@ -90,6 +90,10 @@ public class Equipement
 			System.out.println("Certificat autosigné non vérifié.");
 		}
 	}
+	public int port()
+	{
+		return this.monPort;
+	}
 	private void certification(Equipement other)
 	{
 		// other possède un certificat de this portant sur la clé publique de other
