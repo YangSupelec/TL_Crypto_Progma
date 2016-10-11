@@ -1,3 +1,4 @@
+package core;
 import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,7 @@ public class Equipement
 	private HashMap<String,HashMap<PublicKey, Certificat>> ca; 
 	private HashMap<String, PublicKey> da;
 
-	Equipement (String nom, int port) throws Exception 
+	public Equipement (String nom, int port) throws Exception 
 	{
 		// Constructeur de l’equipement identifie par nom
 		// et qui « écoutera » sur le port port.
