@@ -104,7 +104,7 @@ public class Certificat {
 		System.out.println("\tSubjectDN : "+this.x509.getSubjectDN());
 		System.out.println("\tPublicKey : "+this.x509.getPublicKey());
 		System.out.println("\tSignature Algorithm : "+this.x509.getSigAlgName()
-);
+				);
 		BigInteger bi = new BigInteger(this.x509.getSignature());
 		String signature = bi.toString(16);
 		System.out.println("\tSignature : "+signature);
