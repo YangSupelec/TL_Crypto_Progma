@@ -31,8 +31,8 @@ public class Equipement
 		// Affichage de la liste des équipements de DA.
 		for (Entry<String, PublicKey> entry : this.da.entrySet())
 		{
-			System.out.println("Nom de l'equipement : "+entry);
-			System.out.println("Cle publique : "+ this.da.get(entry));
+			System.out.println("Nom de l'equipement : "+entry.getKey());
+			System.out.println("Cle publique : "+ entry.getValue());
 			System.out.println("___________________");
 		}
 	}
