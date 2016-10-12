@@ -127,12 +127,8 @@ public class Equipement
 			this.ca.put(other.monNom(), pubCertif);
 		}
 	}
-<<<<<<< HEAD:src/Equipement.java
 	public void sync()
 	{
 		
 	}
-=======
->>>>>>> c2bf34c1a44175eb19039f7d564fd91e7f1d98e0:src/core/Equipement.java
-
 }
