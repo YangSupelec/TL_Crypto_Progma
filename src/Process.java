@@ -1,33 +1,52 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.Scanner;
 
 public class Process {
 	private static final int PORT_TV = 3040;
 	private static final int PORT_DVD = 3041;
-
-	/**
-	 * @param args
-	 */
+	private static HashMap<Integer, Equipement> equipements= new HashMap<Integer, Equipement>();
+	private static Integer nbEquipement;
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		//initOperation();
-		try {
-			Equipement tv = new Equipement("TV_Server", PORT_TV);
-			Equipement dvd = new Equipement("DVD_Client", PORT_DVD);
-			ServerEquipement s_tv = new ServerEquipement(tv);
-			ClientEquipement c_dvd = new ClientEquipement(dvd, PORT_TV);
-			
-			s_tv.start();
-			TimeUnit.SECONDS.sleep(1);
-			c_dvd.start();
-			//tv.startListening(PORT_DVD);
-			//dvd.startSpeaking();
-			
+		String answer;
+		Scanner scan = new Scanner(System.in);
+		initOperation();
+		answer = scan.next();
+		switch (answer)
+		{
+		case "i":
+			if(equipements.isEmpty())
+			{
+				System.out.println("Il n'y a pas d'equipement.");
+			}
 			
 			
-		} catch (Exception e) {
-			e.printStackTrace();
+		default:
+			System.out.println("Ce choix n'est pas permis.");
+			initOperation();
+			
 		}
+//		try {
+//			Equipement tv = new Equipement("TV_Server", PORT_TV);
+//			Equipement dvd = new Equipement("DVD_Client", PORT_DVD);
+//			ServerEquipement s_tv = new ServerEquipement(tv);
+//			ClientEquipement c_dvd = new ClientEquipement(dvd, PORT_TV);
+//			
+//			s_tv.start();
+//			TimeUnit.SECONDS.sleep(1);
+//			c_dvd.start();
+//			//tv.startListening(PORT_DVD);
+//			//dvd.startSpeaking();
+//			
+//			
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 	private static void equipement(String nom)
 	{
@@ -49,7 +68,7 @@ public class Process {
 		System.out.println("c => Créer un équipement client");
 		System.out.println("s => Créer un équipement serveur");
 		System.out.println("q => Quitter");
-		//HashMap<String,String> opes = new HashMap<String, String>();
+		System.out.println("Entrez votre choix(lettre) : ");
 		//opes.put("i", value)
 	}
 
