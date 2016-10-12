@@ -31,8 +31,8 @@ public class Equipement
 		// Affichage de la liste des équipements de DA.
 		for (Entry<String, PublicKey> entry : this.da.entrySet())
 		{
-			System.out.println("Nom de l'equipement : "+entry.getKey());
-			System.out.println("Cle publique : "+ entry.getValue());
+			System.out.println("Nom de l'equipement : "+entry);
+			System.out.println("Cle publique : "+ this.da.get(entry));
 			System.out.println("___________________");
 		}
 	}
@@ -90,10 +90,6 @@ public class Equipement
 			System.out.println("Certificat autosigné non vérifié.");
 		}
 	}
-	public int port()
-	{
-		return this.monPort;
-	}
 	private void certification(Equipement other)
 	{
 		// other possède un certificat de this portant sur la clé publique de other
@@ -127,12 +123,9 @@ public class Equipement
 			this.ca.put(other.monNom(), pubCertif);
 		}
 	}
-<<<<<<< HEAD:src/Equipement.java
 	public void sync()
 	{
 		
 	}
-=======
->>>>>>> c2bf34c1a44175eb19039f7d564fd91e7f1d98e0:src/core/Equipement.java
 
 }
