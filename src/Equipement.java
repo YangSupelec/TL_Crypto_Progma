@@ -43,7 +43,7 @@ public class Equipement
 		// Affichage de la liste des équipements de CA.
 		for (Certificat certif : this.ca)
 		{
-			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().length());
+			System.out.println("Nom de l'equipement : "+certif.x509.getIssuerDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
 			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
 			System.out.println("___________________\n");
 		}

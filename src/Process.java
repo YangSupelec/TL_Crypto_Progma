@@ -79,7 +79,7 @@ public class Process {
 		try {
 			if (server == null) {
 				Scanner scan = new Scanner(System.in);
-				System.out.println("\n\t\t il n'y a pas de server fonctionne maintenant, voulez-vous jouer comme server?");
+				System.out.println("\n\t\t Il n'y a pas de serveur en fonction, voulez-vous être un serveur?");
 				System.out.println("o => oui");
 				System.out.println("n => non et retour");
 				String answer= scan.next();
@@ -89,12 +89,15 @@ public class Process {
 					joueCommeServer(equipe);
 					break;
 				case "n":
-					equipement(equipe);
+					System.out.println("Pas de serveur en fonction, commencez par en créer un.");
+					listeEquipements();
 					break;
 				}
 			} else {
 				ClientEquipement client = new ClientEquipement(equipe, server.port);
 				client.start();
+				TimeUnit.SECONDS.sleep(1);
+				equipement(equipe);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -107,10 +110,11 @@ public class Process {
 		if (server == null) {
 			server = new ServerEquipement(equipement);
 			server.start();
-			System.out.println("\n\t\t "+equipement.monNom+" joue comme server en port "+equipement.monPort);
+			System.out.println("\n\t\t "+equipement.monNom+" Fonctionne comme serveur en port "+equipement.monPort);
+			listeEquipements();
 		} else {
 			Scanner scan = new Scanner(System.in);
-			System.out.println("\n\t\t il y a déjà un server "+server.equipement.monNom+" fonctionne maintenant, voulez-vous le remplace ?");
+			System.out.println("\n\t\t Il y a déjà un server "+server.equipement.monNom+" en fonction, voulez-vous le remplacer ?");
 			System.out.println("o => oui");
 			System.out.println("n => non et retour");
 			String answer= scan.next();
@@ -179,7 +183,16 @@ public class Process {
 			try
 			{
 				port=  Integer.parseInt(scan.next());
-				flag=false; // on sort de la boucle
+				if (port<1024)
+				{
+					System.out.println("Le port ne peut pas être inférieur à 1024.");
+					System.out.println("Port de l'equipement : ");
+				}
+					
+				else
+				{
+					flag=false; // on sort de la boucle
+				}
 			} catch (NumberFormatException e)
 			{
 				System.out.println("\nErreur, le port de l'equipement doit etre un nombre.");
