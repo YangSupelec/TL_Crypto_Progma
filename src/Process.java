@@ -4,24 +4,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.ViewportLayout;
+
 import java.util.Scanner;
 
 public class Process {
 	private static HashMap<Integer, Equipement> equipements= new HashMap<Integer, Equipement>();
 	private static Integer nbEquipement=0;
+	private static ServerEquipement server;
 	
 	public static void main(String[] args) 
 	{
 		// TODO Auto-generated method stub
-		initOperation();
-		
+		try {
+			initOperation();
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
-	private static void equipement(int i,String nom)
+	private static void equipement(Equipement equipe) throws Exception
 	{
 		Scanner scan = new Scanner(System.in);
-		System.out.println("\t\t Gestion de l'equipement : "+nom);
+		System.out.println("\t\t Gestion de l'equipement : "+equipe.monNom);
 		System.out.println("i => Informations concernant l'equipement");
 		System.out.println("l => Liste des equipements CA");
 		System.out.println("d => Liste des equipements de DA");
@@ -33,22 +44,23 @@ public class Process {
 		switch (answer)
 		{
 		case "i":
-			equipements.get(i).affichage();
-			equipement(i, nom);
+			equipe.affichage();
+			equipement(equipe);
 			break;
 		case "l":
-			equipements.get(i).affichage_ca();
-			equipement(i, nom);
+			equipe.affichage_ca();
+			equipement(equipe);
 			break;
 		case "d":
-			equipements.get(i).affichage_da();
-			equipement(i, nom);
+			equipe.affichage_da();
+			equipement(equipe);
 			break;
 		case "s":
-			listeEquipements();
+			joueCommeServer(equipe);
+			equipement(equipe);
 			break;
 		case "c":
-			listeEquipements();
+			joueCommeClient(equipe);
 			break;
 		case "r":
 			listeEquipements();
@@ -63,7 +75,63 @@ public class Process {
 		}
 	}
 	
-	private static void initOperation() 
+	private static void joueCommeClient(Equipement equipe) {
+		try {
+			if (server == null) {
+				Scanner scan = new Scanner(System.in);
+				System.out.println("\n\t\t il n'y a pas de server fonctionne maintenant, voulez-vous jouer comme server?");
+				System.out.println("o => oui");
+				System.out.println("n => non et retour");
+				String answer= scan.next();
+				switch (answer)
+				{
+				case "o":
+					joueCommeServer(equipe);
+					break;
+				case "n":
+					equipement(equipe);
+					break;
+				}
+			} else {
+				ClientEquipement client = new ClientEquipement(equipe, server.port);
+				client.start();
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	private static void joueCommeServer(Equipement equipement) throws Exception {
+		if (server == null) {
+			server = new ServerEquipement(equipement);
+			server.start();
+			System.out.println("\n\t\t "+equipement.monNom+" joue comme server en port "+equipement.monPort);
+		} else {
+			Scanner scan = new Scanner(System.in);
+			System.out.println("\n\t\t il y a déjà un server "+server.equipement.monNom+" fonctionne maintenant, voulez-vous le remplace ?");
+			System.out.println("o => oui");
+			System.out.println("n => non et retour");
+			String answer= scan.next();
+			switch (answer)
+			{
+			case "o":
+				server.stop();
+				server.join();
+				server = null;
+				joueCommeServer(equipement);
+				listeEquipements();
+				break;
+			case "n":
+				equipement(equipement);
+				break;
+			}
+		}
+		
+	}
+
+	private static void initOperation() throws NumberFormatException, Exception 
 	{
 		Scanner scan = new Scanner(System.in);
 		System.out.println("\n\t\t Gestion des équipements");
@@ -129,7 +197,7 @@ public class Process {
 		}
 		
 	}
-	private static void listeEquipements()
+	private static void listeEquipements() throws NumberFormatException, Exception
 	{
 		System.out.println("\n\t\tListe des equipements");
 		List<String> numEquipements = new ArrayList();
@@ -149,7 +217,7 @@ public class Process {
 			if (numEquipements.contains(answer))
 			{
 				flag=false;
-				equipement(Integer.parseInt(answer),equipements.get(Integer.parseInt(answer)).monNom());
+				equipement(equipements.get(Integer.parseInt(answer)));
 			}
 			else
 			{
