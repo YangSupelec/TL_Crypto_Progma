@@ -1,4 +1,5 @@
 import java.security.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,7 +10,7 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	protected String monNom; // Identite de l’equipement.
 	protected int monPort; // Le numéro de port d’ecoute.
-	private HashMap<String,HashMap<PublicKey, Certificat>> ca; 
+	private ArrayList<Certificat> ca; 
 	private HashMap<String, PublicKey> da;
 
 	Equipement (String nom, int port) throws Exception 
@@ -22,7 +23,7 @@ public class Equipement
 		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10);
 		this.autoVerif();
 		this.affichage();
-		this.ca=new HashMap<String,HashMap<PublicKey,Certificat>>();
+		this.ca=new ArrayList<Certificat>();
 		this.da=new HashMap<String, PublicKey>();
 	}
 
@@ -40,14 +41,11 @@ public class Equipement
 	public void affichage_ca() 
 	{
 		// Affichage de la liste des équipements de CA.
-		for (Entry<String, HashMap<PublicKey, Certificat>> entry : this.ca.entrySet())
+		for (Certificat certif : this.ca)
 		{
-			System.out.println("Nom de l'equipement : "+entry);
-			for (Entry<PublicKey, Certificat> ent : this.ca.get(entry).entrySet())
-			{
-				System.out.println("Cle publique : "+ ent);
-			}
-			System.out.println("___________________");
+			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().length());
+			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
+			System.out.println("___________________\n");
 		}
 	}
 
@@ -72,6 +70,10 @@ public class Equipement
 		// Recuperation de la clé publique de l’équipement.
 		return this.maCle.Publique();
 	}
+	public PrivateKey maClePriv()
+	{
+		return this.maCle.Privee();
+	}
 
 	public Certificat monCertif() 
 	{
@@ -94,41 +96,21 @@ public class Equipement
 	{
 		return this.monPort;
 	}
-	private void certification(Equipement other)
+	
+	public void ajoutCA(Certificat certif)
 	{
-		// other possède un certificat de this portant sur la clé publique de other
-		Certificat certifA = new Certificat(this.monNom(), other.monNom(), other.maClePub(), this.maCle.Privee(), 10);
-		// on vérifie
-		if (certifA.verifCertif(this.maClePub())) // si le certificat est vérifié, on ajoute this au CA de other
+		for (Certificat certificat : this.ca)
 		{
-			other.ajoutCA(this, certifA);
-			Certificat certifB = new Certificat(other.monNom(), this.monNom(), this.maClePub(), other.maCle.Privee(), 10);
-			if (certifB.verifCertif(other.maClePub()))
+			if(certif.x509.getIssuerDN().equals(certif.x509.getIssuerDN()))
 			{
-				this.ajoutCA(other, certifB);
-			}
-			else
-			{
-				System.out.println("Le certificat n'est pas valide.");
+				this.ca.remove(certificat);
 			}
 		}
-		else
-		{
-			System.out.println("Le certificat n'est pas valide.");
-		}
-	}
-	public void ajoutCA(Equipement other, Certificat certif)
-	{
-		HashMap<PublicKey, Certificat> pubCertif = new HashMap();
-		pubCertif.put(other.maClePub(), certif);
-		// ajoute dans le CA de this, other
-		if (! this.ca.containsValue(pubCertif)) // si la valeur n'est pas déjà dans la hash map, on l'ajoute.
-		{
-			this.ca.put(other.monNom(), pubCertif);
-		}
+		this.ca.add(certif);
 	}
 	public void sync()
 	{
 		
 	}
+
 }

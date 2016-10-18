@@ -30,6 +30,7 @@ public class ServerEquipement extends Thread{
 
 	public void startListening() {
 		// Creation de socket (TCP)
+		Certificat client=null;
 		try {
 			serverSocket = new ServerSocket(this.port);
 		} catch (IOException e) {
@@ -51,17 +52,39 @@ public class ServerEquipement extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// Reception d’un String
+		// Reception du certificat du client
 		try {
-			String res = (String) ois.readObject(); 
-			System.out.println("Reception Serveur : "+res);
+			client =  (Certificat) ois.readObject(); 
+			System.out.println("Le serveur a recu le certificat du client.");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// Emission d’un String
+		// Emission du certificat
 		try {
-			oos.writeObject(this.equipement.monNom()); 
+			oos.writeObject(this.equipement.monCertif()); 
 			oos.flush();
+			System.out.println("Le certificat du serveur est envoyé.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// Emission d’un certificat sur la clé publique du client
+		try {
+			Certificat certifSdeC = new Certificat(this.equipement.monNom(), client.x509.getSubjectDN().getName().substring(3, client.x509.getSubjectDN().getName().length()), client.x509.getPublicKey(), this.equipement.maClePriv(), 10);
+			oos.writeObject(certifSdeC); 
+			oos.flush();
+			System.out.println("Le certificat du serveur certifiant la clé publique du client est envoyé");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			Certificat res = (Certificat) ois.readObject(); 
+			System.out.println("Le client a reçu le certificat.");
+			if(res.verifCertif(client.x509.getPublicKey()))
+			{
+				System.out.println("Le serveur a bien certifié la clé publique du client, le client ajoute le serveur à son CA");
+				this.equipement.ajoutCA(res);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

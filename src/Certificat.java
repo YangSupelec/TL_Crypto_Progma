@@ -6,13 +6,15 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import javax.security.auth.x500.X500Principal;
 
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import org.bouncycastle.jcajce.provider.asymmetric.X509;
 import org.bouncycastle.x509.X509V1CertificateGenerator;
 
 
 
 
-public class Certificat {
+public class Certificat implements Serializable{
 	static private BigInteger seqnum = BigInteger.ZERO;
 	public X509Certificate x509;
 
@@ -109,5 +111,9 @@ public class Certificat {
 		String signature = bi.toString(16);
 		System.out.println("\tSignature : "+signature);
 	}
-
+	public PublicKey clePub()
+	{
+		return this.x509.getPublicKey();
+	}
+	
 }
