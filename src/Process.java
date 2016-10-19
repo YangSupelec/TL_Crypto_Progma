@@ -18,6 +18,7 @@ public class Process {
 	{
 		// TODO Auto-generated method stub
 		try {
+			initEquipements();
 			initOperation();
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
@@ -29,6 +30,14 @@ public class Process {
 		
 	}
 	
+	private static void initEquipements() throws Exception {
+		// TODO Auto-generated method stub
+		for(int i=1;i<5;i++) {
+			nbEquipement++;
+			equipements.put(nbEquipement,new Equipement("equipement_"+i, 2000+i));
+		}
+	}
+
 	private static void equipement(Equipement equipe) throws Exception
 	{
 		Scanner scan = new Scanner(System.in);
