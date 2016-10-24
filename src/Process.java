@@ -12,7 +12,8 @@ import java.util.Scanner;
 public class Process {
 	private static HashMap<Integer, Equipement> equipements= new HashMap<Integer, Equipement>();
 	private static Integer nbEquipement=0;
-	private static ServerEquipement server;
+	//private static ServerEquipement server;
+	//private static ClientEquipement client;
 	
 	public static void main(String[] args) 
 	{
@@ -34,7 +35,7 @@ public class Process {
 		// TODO Auto-generated method stub
 		for(int i=1;i<5;i++) {
 			nbEquipement++;
-			equipements.put(nbEquipement,new Equipement("equipement_"+i, 2000+i));
+			equipements.put(nbEquipement,new Equipement("equipement_"+i, 2050+i));
 		}
 	}
 
@@ -47,6 +48,8 @@ public class Process {
 		System.out.println("d => Liste des equipements de DA");
 		System.out.println("s => Effectuer l'insertion en tant que serveur");
 		System.out.println("c => Effectuer l'insertion en tant que client");
+		System.out.println("a => Effectuer la synchronisation en tant que serveur");
+		System.out.println("b => Effectuer la synchronisation en tant que client");
 		System.out.println("r => Retour");
 		System.out.println("q => Quitter");
 		String answer= scan.next();
@@ -65,11 +68,20 @@ public class Process {
 			equipement(equipe);
 			break;
 		case "s":
-			joueCommeServer(equipe);
-			equipement(equipe);
+			equipementsSauf(equipe, true, true); // choisir un client / insertion
+			listeEquipements();
 			break;
 		case "c":
-			joueCommeClient(equipe);
+			equipementsSauf(equipe, false, true); // choisir un serveur / insertion
+			listeEquipements();
+			break;
+		case "a":
+			equipementsSauf(equipe, true, false); // choisir un client / sync
+			listeEquipements();
+			break;
+		case "b":
+			equipementsSauf(equipe, false, false); // choisir un serveur / sync
+			listeEquipements();
 			break;
 		case "r":
 			listeEquipements();
@@ -84,66 +96,66 @@ public class Process {
 		}
 	}
 	
-	private static void joueCommeClient(Equipement equipe) {
-		try {
-			if (server == null) {
-				Scanner scan = new Scanner(System.in);
-				System.out.println("\n\t\t Il n'y a pas de serveur en fonction, voulez-vous être un serveur?");
-				System.out.println("o => oui");
-				System.out.println("n => non et retour");
-				String answer= scan.next();
-				switch (answer)
-				{
-				case "o":
-					joueCommeServer(equipe);
-					break;
-				case "n":
-					System.out.println("Pas de serveur en fonction, commencez par en créer un.");
-					listeEquipements();
-					break;
-				}
-			} else {
-				ClientEquipement client = new ClientEquipement(equipe, server.port);
-				client.start();
-				TimeUnit.SECONDS.sleep(1);
-				equipement(equipe);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
+//	private static void client(Equipement equipe, boolean mode) 
+//	{
+//		try {
+//			if (server == null) {
+//				Scanner scan = new Scanner(System.in);
+//				System.out.println("\n\t\t Il n'y a pas de serveur en fonction, voulez-vous être un serveur?");
+//				System.out.println("o => oui");
+//				System.out.println("n => non et retour");
+//				String answer= scan.next();
+//				switch (answer)
+//				{
+//				case "o":
+//					server(equipe,mode);
+//					break;
+//				case "n":
+//					System.out.println("Pas de serveur en fonction, commencez par en créer un.");
+//					listeEquipements();
+//					break;
+//				}
+//			} else {
+//				ClientEquipement client = new ClientEquipement(equipe, server.port, mode);
+//				client.start();
+//				TimeUnit.SECONDS.sleep(1);
+//				equipement(equipe);
+//			}
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//	}
 
-	private static void joueCommeServer(Equipement equipement) throws Exception {
-		if (server == null) {
-			server = new ServerEquipement(equipement);
-			server.start();
-			System.out.println("\n\t\t "+equipement.monNom+" Fonctionne comme serveur en port "+equipement.monPort);
-			listeEquipements();
-		} else {
-			Scanner scan = new Scanner(System.in);
-			System.out.println("\n\t\t Il y a déjà un server "+server.equipement.monNom+" en fonction, voulez-vous le remplacer ?");
-			System.out.println("o => oui");
-			System.out.println("n => non et retour");
-			String answer= scan.next();
-			switch (answer)
-			{
-			case "o":
-				server.stop();
-				server.join();
-				server = null;
-				joueCommeServer(equipement);
-				listeEquipements();
-				break;
-			case "n":
-				equipement(equipement);
-				break;
-			}
-		}
-		
-	}
-
+//	private static void server(Equipement equipement, boolean mode) throws Exception {
+//		if (server == null) {
+//			server = new ServerEquipement(equipement, mode);
+//			server.start();
+//			System.out.println("\n\t\t "+equipement.monNom+" Fonctionne comme serveur en port "+equipement.monPort);
+//			listeEquipements();
+//		} else {
+//			Scanner scan = new Scanner(System.in);
+//			System.out.println("\n\t\t Il y a déjà un server "+server.equipement.monNom+" en fonction, voulez-vous le remplacer ?");
+//			System.out.println("o => oui");
+//			System.out.println("n => non et retour");
+//			String answer= scan.next();
+//			switch (answer)
+//			{
+//			case "o":
+//				server.join();
+//				server = null;
+//				server(equipement, mode);
+//				listeEquipements();
+//				break;
+//			case "n":
+//				equipement(equipement);
+//				break;
+//			}
+//		}
+//		
+//	}
+	
 	private static void initOperation() throws NumberFormatException, Exception 
 	{
 		Scanner scan = new Scanner(System.in);
@@ -240,6 +252,72 @@ public class Process {
 			{
 				flag=false;
 				equipement(equipements.get(Integer.parseInt(answer)));
+			}
+			else
+			{
+				switch (answer)
+				{
+				case "r":
+					initOperation();
+					flag=false;
+					break;
+				case "q":
+					System.exit(0);
+					flag=false;
+					break;
+				default:
+					System.out.println("Ce choix n'est pas permis.");
+					listeEquipements();
+					break;
+				}
+			}
+		}
+	}
+	private static void lancer(Equipement serveur, Equipement client, boolean mode) throws Exception
+	{
+		new ServerEquipement(serveur, mode).start();
+		new ClientEquipement(client, serveur.port(), mode).start();
+		TimeUnit.SECONDS.sleep(1);
+		listeEquipements();
+	}
+	private static void equipementsSauf(Equipement equipement, boolean choixClient, boolean mode) throws NumberFormatException, Exception
+	{
+		if (choixClient ==true)
+		{
+			System.out.println("\n\t\t Choisissez un client : ");
+		}
+		else
+		{
+			System.out.println("\n\t\t Choisissez un serveur : ");
+		}
+		List<String> numEquipements = new ArrayList();
+		for (Entry<Integer, Equipement> entry : equipements.entrySet())
+		{
+			if (!(entry.getValue().equals(equipement)))
+			System.out.println(entry.getKey()+" => "+entry.getValue().monNom());
+			numEquipements.add(Integer.toString(entry.getKey()));
+		}
+		System.out.println("r => Retour");
+		System.out.println("q => Quitter");
+		System.out.println("Entrez votre choix(numero de l'equipement ou lettre) : ");
+		Scanner scan = new Scanner(System.in);
+		String answer= scan.next();
+		boolean flag = true;
+		while(flag)
+		{
+			if (numEquipements.contains(answer))
+			{
+				flag=false;
+				if (choixClient==true)
+				{
+					lancer(equipement, equipements.get(Integer.parseInt(answer)), mode);
+					listeEquipements();
+				}
+				else
+				{
+					lancer(equipements.get(Integer.parseInt(answer)), equipement, mode);
+					listeEquipements();
+				}
 			}
 			else
 			{
