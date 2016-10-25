@@ -1,8 +1,6 @@
 import java.security.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashSet;
+
 
 public class Equipement 
 {
@@ -10,8 +8,8 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	protected String monNom; // Identite de l’equipement.
 	protected int monPort; // Le numéro de port d’ecoute.
-	private ArrayList<Certificat> ca; 
-	private HashMap<String, PublicKey> da;
+	private HashSet<Certificat> ca; 
+	private HashSet<Certificat> da;
 
 	Equipement (String nom, int port) throws Exception 
 	{
@@ -23,30 +21,42 @@ public class Equipement
 		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10);
 		this.autoVerif();
 		this.affichage();
-		this.ca=new ArrayList<Certificat>();
-		this.da=new HashMap<String, PublicKey>();
+		this.ca=new HashSet<Certificat>();
+		this.da=new HashSet<Certificat>();
 	}
 
 	public void affichage_da() 
 	{
+		System.out.println("\n\t\t Liste des equipements DA :\n");
 		// Affichage de la liste des équipements de DA.
-		for (Entry<String, PublicKey> entry : this.da.entrySet())
+		for (Certificat certif : this.da)
 		{
-			System.out.println("Nom de l'equipement : "+entry.getKey());
-			System.out.println("Cle publique : "+ entry.getValue());
-			System.out.println("___________________");
+			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
+			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
+			System.out.println("___________________\n");
 		}
+	}
+	
+	public HashSet<Certificat> monDA()
+	{
+		return this.da;
 	}
 
 	public void affichage_ca() 
 	{
+		System.out.println("\n\t\t Liste des equipements CA :\n");
 		// Affichage de la liste des équipements de CA.
 		for (Certificat certif : this.ca)
 		{
-			System.out.println("Nom de l'equipement : "+certif.x509.getIssuerDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
+			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
 			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
 			System.out.println("___________________\n");
 		}
+	}
+	
+	public HashSet<Certificat> monCA()
+	{
+		return this.ca;
 	}
 
 	public void affichage() 
@@ -99,18 +109,46 @@ public class Equipement
 	
 	public void ajoutCA(Certificat certif)
 	{
-		for (Certificat certificat : this.ca)
-		{
-			if(certif.x509.getIssuerDN().equals(certif.x509.getIssuerDN()))
-			{
-				this.ca.remove(certificat);
-			}
-		}
 		this.ca.add(certif);
 	}
-	public void sync()
+	public void supprimerDA(Certificat certif)
 	{
-		
+		for (Certificat certifDA : this.da)
+		{
+			if(certif.equals(certifDA))
+			{
+				this.da.remove(certif);
+			}
+		}
+	}
+	public void sync(HashSet<Certificat> other)
+	{
+		boolean deja =false;
+		for (Certificat certificat : other)
+		{
+			deja=false;
+			if (!(this.monCert.equals(certificat)))
+			{
+				for (Certificat certifCA : this.ca)
+				{
+					if(certificat.equals(certifCA))
+					{
+						deja=true;
+					}
+				}
+				for (Certificat certifDA : this.da)
+				{
+					if(certificat.equals(certifDA))
+					{
+						deja=true;
+					}
+				}
+				if (deja==false)
+				{
+					this.da.add(certificat);
+				}
+			}
+		}
 	}
 
 }

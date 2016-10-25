@@ -115,5 +115,15 @@ public class Certificat implements Serializable{
 	{
 		return this.x509.getPublicKey();
 	}
-	
+	public boolean equals(Certificat certif)
+	{
+		if (this.x509.getSubjectDN().getName().equals(certif.x509.getSubjectDN().getName()))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }

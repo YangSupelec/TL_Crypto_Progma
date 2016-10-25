@@ -96,66 +96,6 @@ public class Process {
 		}
 	}
 	
-//	private static void client(Equipement equipe, boolean mode) 
-//	{
-//		try {
-//			if (server == null) {
-//				Scanner scan = new Scanner(System.in);
-//				System.out.println("\n\t\t Il n'y a pas de serveur en fonction, voulez-vous être un serveur?");
-//				System.out.println("o => oui");
-//				System.out.println("n => non et retour");
-//				String answer= scan.next();
-//				switch (answer)
-//				{
-//				case "o":
-//					server(equipe,mode);
-//					break;
-//				case "n":
-//					System.out.println("Pas de serveur en fonction, commencez par en créer un.");
-//					listeEquipements();
-//					break;
-//				}
-//			} else {
-//				ClientEquipement client = new ClientEquipement(equipe, server.port, mode);
-//				client.start();
-//				TimeUnit.SECONDS.sleep(1);
-//				equipement(equipe);
-//			}
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//	}
-
-//	private static void server(Equipement equipement, boolean mode) throws Exception {
-//		if (server == null) {
-//			server = new ServerEquipement(equipement, mode);
-//			server.start();
-//			System.out.println("\n\t\t "+equipement.monNom+" Fonctionne comme serveur en port "+equipement.monPort);
-//			listeEquipements();
-//		} else {
-//			Scanner scan = new Scanner(System.in);
-//			System.out.println("\n\t\t Il y a déjà un server "+server.equipement.monNom+" en fonction, voulez-vous le remplacer ?");
-//			System.out.println("o => oui");
-//			System.out.println("n => non et retour");
-//			String answer= scan.next();
-//			switch (answer)
-//			{
-//			case "o":
-//				server.join();
-//				server = null;
-//				server(equipement, mode);
-//				listeEquipements();
-//				break;
-//			case "n":
-//				equipement(equipement);
-//				break;
-//			}
-//		}
-//		
-//	}
-	
 	private static void initOperation() throws NumberFormatException, Exception 
 	{
 		Scanner scan = new Scanner(System.in);
@@ -273,13 +213,18 @@ public class Process {
 			}
 		}
 	}
-	private static void lancer(Equipement serveur, Equipement client, boolean mode) throws Exception
+	
+	public static void lancer(Equipement serveur, Equipement client, boolean mode) throws Exception
 	{
-		new ServerEquipement(serveur, mode).start();
-		new ClientEquipement(client, serveur.port(), mode).start();
-		TimeUnit.SECONDS.sleep(1);
+		ServerEquipement s =new ServerEquipement(serveur, mode);
+		s.start();
+		ClientEquipement c =new ClientEquipement(client, serveur.port(), mode);
+		c.start();
+		s.join();
+		c.join();
 		listeEquipements();
 	}
+	
 	private static void equipementsSauf(Equipement equipement, boolean choixClient, boolean mode) throws NumberFormatException, Exception
 	{
 		if (choixClient ==true)
