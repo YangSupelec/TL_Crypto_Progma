@@ -8,9 +8,9 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	protected String monNom; // Identite de l’equipement.
 	protected int monPort; // Le numéro de port d’ecoute.
-	private HashSet<Certificat> ca; 
-	private HashSet<Certificat> da;
-
+	private HashSet<NomPubKey> ca; 
+	private HashSet<NomPubKey> da;
+	private NomPubKey mesInfos;
 	Equipement (String nom, int port) throws Exception 
 	{
 		// Constructeur de l’equipement identifie par nom
@@ -21,23 +21,27 @@ public class Equipement
 		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10);
 		this.autoVerif();
 		this.affichage();
-		this.ca=new HashSet<Certificat>();
-		this.da=new HashSet<Certificat>();
+		this.ca=new HashSet<NomPubKey>();
+		this.da=new HashSet<NomPubKey>();
+		this.mesInfos = new NomPubKey(this.monNom, this.maClePub());
+	}
+	public NomPubKey mesInfos()
+	{
+		return this.mesInfos;
 	}
 
 	public void affichage_da() 
 	{
 		System.out.println("\n\t\t Liste des equipements DA :\n");
 		// Affichage de la liste des équipements de DA.
-		for (Certificat certif : this.da)
+		for (NomPubKey certif : this.da)
 		{
-			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
-			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
-			System.out.println("___________________\n");
+			System.out.println("Nom de l'equipement : "+certif.monNom());
 		}
+		System.out.println("\n");
 	}
 	
-	public HashSet<Certificat> monDA()
+	public HashSet<NomPubKey> monDA()
 	{
 		return this.da;
 	}
@@ -46,15 +50,14 @@ public class Equipement
 	{
 		System.out.println("\n\t\t Liste des equipements CA :\n");
 		// Affichage de la liste des équipements de CA.
-		for (Certificat certif : this.ca)
+		for (NomPubKey certif : this.ca)
 		{
-			System.out.println("Nom de l'equipement : "+certif.x509.getSubjectDN().getName().substring(3, certif.x509.getIssuerDN().getName().length()));
-			System.out.println("Valable jusque : " + certif.x509.getNotAfter());
-			System.out.println("___________________\n");
+			System.out.println("Nom de l'equipement : "+certif.monNom());
 		}
+		System.out.println("\n");
 	}
 	
-	public HashSet<Certificat> monCA()
+	public HashSet<NomPubKey> monCA()
 	{
 		return this.ca;
 	}
@@ -107,46 +110,65 @@ public class Equipement
 		return this.monPort;
 	}
 	
-	public void ajoutCA(Certificat certif)
+	public void ajoutCA(NomPubKey infos)
 	{
-		this.ca.add(certif);
-	}
-	public void supprimerDA(Certificat certif)
-	{
-		for (Certificat certifDA : this.da)
+		
+		boolean test=false;
+		for (NomPubKey inf : this.ca)
 		{
-			if(certif.equals(certifDA))
+			if(inf.equals(infos))
 			{
-				this.da.remove(certif);
+				test=true;
 			}
 		}
-	}
-	public void sync(HashSet<Certificat> other)
-	{
-		boolean deja =false;
-		for (Certificat certificat : other)
+		if (test==false)
 		{
-			deja=false;
-			if (!(this.monCert.equals(certificat)))
+			this.ca.add(infos);
+		}
+	}
+	public void supprimerDA(NomPubKey infos)
+	{
+		
+		HashSet<NomPubKey> temp = new HashSet<NomPubKey>();
+		for(NomPubKey inf : this.da)
+		{
+			if (!inf.equals(infos))
 			{
-				for (Certificat certifCA : this.ca)
+				temp.add(inf);
+			}
+		}
+		this.da=temp;
+	}
+	public void sync(HashSet<NomPubKey> other)
+	{
+		boolean test = false;
+		for (NomPubKey infosOther : other)
+		{
+			test =false;
+			if (this.mesInfos.equals(infosOther))
+			{
+				test=true;
+			}
+			else
+			{
+				for (NomPubKey inf : this.da)
 				{
-					if(certificat.equals(certifCA))
+					if(inf.equals(infosOther))
 					{
-						deja=true;
+						test=true;
 					}
 				}
-				for (Certificat certifDA : this.da)
+				for (NomPubKey inf : this.ca)
 				{
-					if(certificat.equals(certifDA))
+					if(inf.equals(infosOther))
 					{
-						deja=true;
+						test=true;
 					}
 				}
-				if (deja==false)
-				{
-					this.da.add(certificat);
-				}
+			}
+			if (test == false)
+			{
+				this.da.add(infosOther);
 			}
 		}
 	}

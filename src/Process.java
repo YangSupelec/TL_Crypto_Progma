@@ -12,8 +12,6 @@ import java.util.Scanner;
 public class Process {
 	private static HashMap<Integer, Equipement> equipements= new HashMap<Integer, Equipement>();
 	private static Integer nbEquipement=0;
-	//private static ServerEquipement server;
-	//private static ClientEquipement client;
 	
 	public static void main(String[] args) 
 	{
@@ -91,7 +89,7 @@ public class Process {
 			break;
 		default:
 			System.out.println("Ce choix n'est pas permis.");
-			initOperation();
+			equipement(equipe);
 			break;
 		}
 	}

@@ -6,10 +6,9 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import javax.security.auth.x500.X500Principal;
 
-import java.io.ObjectOutputStream;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+
 import java.io.Serializable;
-import org.bouncycastle.jcajce.provider.asymmetric.X509;
-import org.bouncycastle.x509.X509V1CertificateGenerator;
 
 
 
@@ -24,7 +23,7 @@ public class Certificat implements Serializable{
 		PublicKey pubkey = clePub;
 		PrivateKey privkey = signature;
 		// On cree la structure qui va nous permettre de creer le certificat
-		X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+		X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 		// Le certificat sera valide pour 10 jours
 		Calendar expiry = Calendar.getInstance();
 		Date startDate = expiry.getTime();
@@ -115,15 +114,10 @@ public class Certificat implements Serializable{
 	{
 		return this.x509.getPublicKey();
 	}
-	public boolean equals(Certificat certif)
+	
+	public BigInteger getSignature()
 	{
-		if (this.x509.getSubjectDN().getName().equals(certif.x509.getSubjectDN().getName()))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		BigInteger bi = new BigInteger(this.x509.getSignature());
+		return bi;
 	}
 }

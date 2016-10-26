@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.security.*;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-public class PaireClesRSA {
+public class PaireClesRSA implements Serializable{
 	private KeyPair key;
 
 	static{
