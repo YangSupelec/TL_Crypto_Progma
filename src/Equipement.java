@@ -8,24 +8,24 @@ public class Equipement
 	private Certificat monCert; // Le certificat auto-signe.
 	protected String monNom; // Identite de l’equipement.
 	protected int monPort; // Le numéro de port d’ecoute.
-	private HashSet<NomPubKey> ca; 
-	private HashSet<NomPubKey> da;
-	private NomPubKey mesInfos;
+	private HashSet<InfoEquipement> ca; // ensemble des Autorités de Certification reconnues par this
+	private HashSet<InfoEquipement> da; // ensemble des Autorités dérivées reconnues par this
+	private InfoEquipement mesInfos; // objet contenant le nom et la clé publique de this
 	Equipement (String nom, int port) throws Exception 
 	{
 		// Constructeur de l’equipement identifie par nom
 		// et qui « écoutera » sur le port port.
 		this.monNom=nom;
 		this.monPort=port;
-		this.maCle= new PaireClesRSA();
-		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10);
-		this.autoVerif();
-		this.affichage();
-		this.ca=new HashSet<NomPubKey>();
-		this.da=new HashSet<NomPubKey>();
-		this.mesInfos = new NomPubKey(this.monNom, this.maClePub());
+		this.maCle= new PaireClesRSA(); // génération des clés publiques et privées
+		this.monCert=new Certificat(this.monNom, this.monNom, this.maClePub(), this.maCle.Privee(), 10); // création du certificat autosigné
+		this.autoVerif(); // vérification du certificat autosigné
+		this.affichage(); // affichage du certificat autosigné
+		this.ca=new HashSet<InfoEquipement>(); // initialisation du CA
+		this.da=new HashSet<InfoEquipement>(); // initialisation du DA
+		this.mesInfos = new InfoEquipement(this.monNom, this.maClePub()); // création de l'objet InfoEquipement
 	}
-	public NomPubKey mesInfos()
+	public InfoEquipement mesInfos() // retourne les informations de l'équipement, qui sera envoyé 
 	{
 		return this.mesInfos;
 	}
@@ -34,14 +34,18 @@ public class Equipement
 	{
 		System.out.println("\n\t\t Liste des equipements DA :\n");
 		// Affichage de la liste des équipements de DA.
-		for (NomPubKey certif : this.da)
+		if (this.da.isEmpty())
+		{
+			System.out.println("Aucun équipement dans le DA.");
+		}
+		for (InfoEquipement certif : this.da)
 		{
 			System.out.println("Nom de l'equipement : "+certif.monNom());
 		}
 		System.out.println("\n");
 	}
 	
-	public HashSet<NomPubKey> monDA()
+	public HashSet<InfoEquipement> monDA()
 	{
 		return this.da;
 	}
@@ -50,14 +54,18 @@ public class Equipement
 	{
 		System.out.println("\n\t\t Liste des equipements CA :\n");
 		// Affichage de la liste des équipements de CA.
-		for (NomPubKey certif : this.ca)
+		if (this.ca.isEmpty())
+		{
+			System.out.println("Aucun équipement dans le CA.");
+		}
+		for (InfoEquipement certif : this.ca)
 		{
 			System.out.println("Nom de l'equipement : "+certif.monNom());
 		}
 		System.out.println("\n");
 	}
 	
-	public HashSet<NomPubKey> monCA()
+	public HashSet<InfoEquipement> monCA()
 	{
 		return this.ca;
 	}
@@ -85,6 +93,7 @@ public class Equipement
 	}
 	public PrivateKey maClePriv()
 	{
+		// Recuperation de la clé privée de l'équipement.
 		return this.maCle.Privee();
 	}
 
@@ -94,7 +103,7 @@ public class Equipement
 		return this.monCert;
 	}
 
-	public void autoVerif()
+	public void autoVerif() // vérification de certificat
 	{
 		if (this.monCertif().verifCertif(maClePub()))
 		{
@@ -107,30 +116,29 @@ public class Equipement
 	}
 	public int port()
 	{
+		// récupère le port de l'équipement
 		return this.monPort;
 	}
 	
-	public void ajoutCA(NomPubKey infos)
+	public void ajoutCA(InfoEquipement infos) // ajouter un équipement au CA, on retient ses "informations" (son Nom et sa clé publique)
 	{
-		
 		boolean test=false;
-		for (NomPubKey inf : this.ca)
+		for (InfoEquipement inf : this.ca) // on parcourt tous les équipement du CA
 		{
-			if(inf.equals(infos))
+			if(inf.equals(infos)) // si l'équipement en paramètre y est déjà, on ne l'ajoute pas
 			{
 				test=true;
 			}
 		}
 		if (test==false)
 		{
-			this.ca.add(infos);
+			this.ca.add(infos); // sinon on l'ajoute
 		}
 	}
-	public void supprimerDA(NomPubKey infos)
+	public void supprimerDA(InfoEquipement infos) // supprimer du DA l'équipement passé en paramètre 
 	{
-		
-		HashSet<NomPubKey> temp = new HashSet<NomPubKey>();
-		for(NomPubKey inf : this.da)
+		HashSet<InfoEquipement> temp = new HashSet<InfoEquipement>();
+		for(InfoEquipement inf : this.da) // on recopie le HashSet sans mettre l'équipement en paramètre (à supprimer)
 		{
 			if (!inf.equals(infos))
 			{
@@ -139,10 +147,10 @@ public class Equipement
 		}
 		this.da=temp;
 	}
-	public void sync(HashSet<NomPubKey> other)
+	public void sync(HashSet<InfoEquipement> other) // si l'équipement en paramètre n'est pas l'équipement lui même et n'est ni dans son CA ou DA alors on l'ajoute dans son DA
 	{
 		boolean test = false;
-		for (NomPubKey infosOther : other)
+		for (InfoEquipement infosOther : other)
 		{
 			test =false;
 			if (this.mesInfos.equals(infosOther))
@@ -151,14 +159,14 @@ public class Equipement
 			}
 			else
 			{
-				for (NomPubKey inf : this.da)
+				for (InfoEquipement inf : this.da)
 				{
 					if(inf.equals(infosOther))
 					{
 						test=true;
 					}
 				}
-				for (NomPubKey inf : this.ca)
+				for (InfoEquipement inf : this.ca)
 				{
 					if(inf.equals(infosOther))
 					{
@@ -172,5 +180,23 @@ public class Equipement
 			}
 		}
 	}
-
+	public boolean estDansDACA(InfoEquipement other)
+	{
+		boolean flag=false;
+		for(InfoEquipement inf : this.ca)
+		{
+			if(inf.equals(other))
+			{
+				flag=true;
+			}
+		}
+		for(InfoEquipement inf : this.da)
+		{
+			if(inf.equals(other))
+			{
+				flag=true;
+			}
+		}
+		return flag;
+	}
 }

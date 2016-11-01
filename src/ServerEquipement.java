@@ -6,6 +6,11 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.security.SecureRandom;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 
 public class ServerEquipement extends Thread{
 
@@ -17,7 +22,14 @@ public class ServerEquipement extends Thread{
 	ObjectOutputStream oos = null;
 	Equipement equipement;
 	int port;
-	boolean mode;// true pour insertion, false pour synchronisation
+	boolean mode;// true pour insertion, false pour synchronisation uniquement
+	InfoEquipement client=null;
+	HashSet<InfoEquipement> dacaClient=null;
+	HashSet<InfoEquipement> dacaServeur=null;
+	SecureRandom nServeur=null;
+	SecureRandom nClient=null;
+	KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+	SecretKey secretKey = null;
 	
 	ServerEquipement(Equipement equipement, boolean mode) throws Exception {
 		this.equipement = equipement;
@@ -49,7 +61,7 @@ public class ServerEquipement extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		this.startListening(this.mode);
+		this.startListening();
 		// Fermeture des flux evolues et natifs
 		try {
 			ois.close();
@@ -72,34 +84,107 @@ public class ServerEquipement extends Thread{
 			e.printStackTrace();
 		}
 	}
-
-	public void startListening(boolean mode) {
-		NomPubKey client=null;
-		HashSet<NomPubKey> dacaClient=null;
-		HashSet<NomPubKey> dacaServeur=null;
+	public boolean syncPossible()
+	{
 		boolean flagServeur=false;
 		boolean flagClient=false;
-		if (mode==true)
-		{
-			// Reception du certificat du client
+		flagServeur=this.equipement.estDansDACA(client);
+			// Emission du flag
 			try {
-				client =  (NomPubKey) ois.readObject(); 
-				System.out.println("Le serveur a recu le certificat du client.");
+				Cipher aesCipher = Cipher.getInstance("AES");
+				aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+				SealedObject ciphered = new SealedObject(flagServeur, aesCipher);
+				
+				oos.writeObject(ciphered); // envoie un boolean true au client pour l'informer que la synchronisation est possible
+				oos.flush();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			// Emission du certificat
-			try {
-				oos.writeObject(this.equipement.mesInfos()); 
-				oos.flush();
-				System.out.println("Les infos du serveur est envoyé.");
+			if (flagServeur==true)
+			{
+				return true;
+			}
+			else
+			{
+				// Reception du flag du client
+				try {
+					SealedObject ciphered =(SealedObject) ois.readObject();
+					Cipher aesCipher = Cipher.getInstance("AES");
+					aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+					flagClient =  (Boolean) ciphered.getObject(secretKey);
+					
 				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if(flagClient==true)
+				{
+					return true;
+				}
+				else
+				{
+					System.out.println("\n\t La synchronisation est impossible, aucun des équipements n'appartient au DA ou CA de l'autre.");
+					return false;
+				}
+			}
+	}
+	public void startListening() 
+	{
+		// Reception du nom et de la clé publique du client
+		try {
+			client =  (InfoEquipement) ois.readObject(); 
+			System.out.println("Le serveur a recu la clé publique du client.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// Emission du nom et de la clé publique du serveur
+		try {
+			oos.writeObject(this.equipement.mesInfos()); 
+			oos.flush();
+			System.out.println("La clé publique du serveur est envoyé.");
+			} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// Emission de nServeur
+		try {
+			nServeur = new SecureRandom();
+			oos.writeObject(nServeur); 
+			oos.flush();
+			System.out.println("Le nombre aléatoire du serveur est envoyé.");
+			} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// Reception de nServeur
+			try {
+				nClient =  (SecureRandom) ois.readObject(); 
+				System.out.println("Le serveur a recu nClient.");
+				
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		// Emission de la clé de session
+		try
+		{
+			keyGen.init(nClient);
+			secretKey = keyGen.generateKey();
+			Cipher rsaCipher = Cipher.getInstance("RSA/None/PKCS1Padding", "BC");
+		    SecureRandom random = new SecureRandom();
+		    rsaCipher.init(Cipher.WRAP_MODE, client.maClePub());
+	        byte[] wrapped = rsaCipher.wrap(secretKey);
+			oos.writeObject(wrapped); 
+			oos.flush();
+			System.out.println("La clé publique du serveur est envoyé.");
+			} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if(this.mode==true || this.syncPossible())
+		{
 			// Emission d’un certificat sur la clé publique du client
 			try {
 				Certificat certifSdeC = new Certificat(this.equipement.monNom(), client.monNom(), client.maClePub(), this.equipement.maClePriv(), 10);
-				oos.writeObject(certifSdeC); 
+				Cipher aesCipher = Cipher.getInstance("AES");
+				aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+				SealedObject ciphered = new SealedObject(certifSdeC, aesCipher);
+				oos.writeObject(ciphered); 
 				oos.flush();
 				System.out.println("Le certificat du serveur certifiant la clé publique du client est envoyé");
 			} catch (Exception e) {
@@ -107,110 +192,57 @@ public class ServerEquipement extends Thread{
 			}
 			// Reception d'un certificat
 			try {
-				Certificat res = (Certificat) ois.readObject(); 
+				SealedObject cipheredCert =(SealedObject) ois.readObject();
+				Cipher aesCipherCert = Cipher.getInstance("AES");
+				aesCipherCert.init(Cipher.ENCRYPT_MODE, secretKey);
+				Certificat res = (Certificat) cipheredCert.getObject(secretKey);
 				System.out.println("Le serveur a reçu le certificat.");
 				if(res.verifCertif(client.maClePub()))
 				{
 					System.out.println("Le serveur a bien certifié la clé publique du client, le client ajoute le serveur à son CA");
 					this.equipement.ajoutCA(client);
 					this.equipement.supprimerDA(client);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			// Emission du DA/CA
-			try {
-				dacaServeur = new HashSet<NomPubKey>();
-				dacaServeur.addAll(this.equipement.monCA());
-				dacaServeur.addAll(this.equipement.monDA());
-				oos.writeObject(dacaServeur); 
-				oos.flush();
-				System.out.println("Le DA/CA du serveur est envoyé.");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			// Reception du DA/CA
-			try {
-				dacaClient = (HashSet<NomPubKey>) ois.readObject(); 
-				System.out.println("Le serveur a recu le DA/CA du client.");
-				this.equipement.sync(dacaClient);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		else
-		{
-			// Reception du DA certificat du client
-			try {
-				dacaClient =  (HashSet<NomPubKey>) ois.readObject(); 
-				System.out.println("Le serveur a recu le DA du client.");
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			boolean test = false;
-			for(NomPubKey inf : dacaClient)
-			{
-				if(inf.equals(this.equipement.mesInfos()))
-				{
-					test=true;
-				}
-			}
-			if (test)
-			{
-				flagServeur=true;
-				// Emission du flag
-				try {
-					oos.writeObject(flagServeur); 
-					oos.flush();
-					System.out.println("Le flag du serveur est envoyé.");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				this.mode=true;
-				this.startListening(true);
-			}
-			else
-			{
-				flagServeur=false;
-				try {
-					oos.writeObject(flagServeur); 
-					oos.flush();
-					System.out.println("Le flag du serveur est envoyé.");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				try {
-					dacaServeur = new HashSet<NomPubKey>();
-					dacaServeur.addAll(this.equipement.monCA());
-					dacaServeur.addAll(this.equipement.monDA());
-					oos.writeObject(dacaServeur); 
-					oos.flush();
-					System.out.println("Le DA du serveur est envoyé.");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				// Reception du flag du client
-				try {
-					flagClient =  (Boolean) ois.readObject(); 
-					System.out.println("Le client a recu le flag du serveur.");
 					
-				} catch (Exception e) {
-					e.printStackTrace();
+					
+					// Emission du DA/CA
+					try {
+						dacaServeur = new HashSet<InfoEquipement>();
+						dacaServeur.addAll(this.equipement.monCA());
+						dacaServeur.addAll(this.equipement.monDA());
+						
+						
+						Cipher aesCipher = Cipher.getInstance("AES");
+						aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+						SealedObject ciphered = new SealedObject(dacaServeur, aesCipher);
+						
+						aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
+						HashSet<InfoEquipement> resultat = (HashSet<InfoEquipement>) ciphered.getObject(secretKey);
+						
+						oos.writeObject(ciphered); 
+						oos.flush();
+						System.out.println("Le DA/CA du serveur est envoyé.");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					// Reception du DA/CA
+					try {
+						SealedObject ciphered =(SealedObject) ois.readObject();
+						Cipher aesCipher = Cipher.getInstance("AES");
+						aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+						dacaClient = (HashSet<InfoEquipement>) ciphered.getObject(secretKey);
+						System.out.println("Le serveur a recu le DA/CA du client, synchronisation.");
+						System.out.println("Fin.");
+						this.equipement.sync(dacaClient); // synchronisation du serveur avec le DA/CA du client
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				if (flagClient==true)
-				{
-					this.mode=true;
-					this.startListening(true);
-				}
-				else
-				{
-					System.out.println("\n\t La synchronisation impossible, aucun des équipements n'appartient au DA de l'autre.");
-				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			
-			
 		}
+		
 	}
 
 }
