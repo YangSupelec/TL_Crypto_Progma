@@ -225,7 +225,7 @@ public class Process {
 	
 	private static void equipementsSauf(Equipement equipement, boolean choixClient, boolean mode) throws NumberFormatException, Exception
 	{
-		if (choixClient ==true)
+		if (choixClient)
 		{
 			System.out.println("\n\t\t Choisissez un client : ");
 		}
