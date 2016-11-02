@@ -144,6 +144,8 @@ public class ClientEquipement extends Thread{
 		// Emission de nClient
 		try {
 			nClient = new SecureRandom();
+			byte[] bytes = new byte[128];
+			nClient.nextBytes(bytes);
 			oos.writeObject(nClient); 
 			oos.flush();
 			System.out.println("Le nombre aléatoire du client est envoyé.");

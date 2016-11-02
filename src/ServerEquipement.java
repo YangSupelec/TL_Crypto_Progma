@@ -147,6 +147,8 @@ public class ServerEquipement extends Thread{
 		// Emission de nServeur
 		try {
 			nServeur = new SecureRandom();
+			byte[] bytes = new byte[128];
+			nServeur.nextBytes(bytes);
 			oos.writeObject(nServeur); 
 			oos.flush();
 			System.out.println("Le nombre aléatoire du serveur est envoyé.");
@@ -155,7 +157,7 @@ public class ServerEquipement extends Thread{
 		}
 		// Reception de nServeur
 			try {
-				nClient =  (SecureRandom) ois.readObject(); 
+				nClient =  (SecureRandom) ois.readObject();
 				System.out.println("Le serveur a recu nClient.");
 				
 			} catch (Exception e) {
