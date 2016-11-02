@@ -26,8 +26,8 @@ public class ClientEquipement extends Thread{
 	InfoEquipement serveur =null;
 	HashSet<InfoEquipement> dacaServeur=null;
 	HashSet<InfoEquipement> dacaClient=null;
-	SecureRandom nServeur=null;
-	SecureRandom nClient=null;
+	int nServeur=0;
+	int nClient=0;
 	KeyGenerator keyGen = KeyGenerator.getInstance("AES");
 	SecretKey secretKey = null;
 	
@@ -117,6 +117,7 @@ public class ClientEquipement extends Thread{
 	
 	public void startSpeaking() 
 	{
+		int flag=0;
 		// Emission de la clé publique du client
 		try {
 			oos.writeObject(this.equipement.mesInfos()); 
@@ -135,92 +136,117 @@ public class ClientEquipement extends Thread{
 		}
 		// Reception de nServeur
 		try {
-			nServeur =  (SecureRandom) ois.readObject(); 
-			System.out.println("Le client a recu nServeur.");
+			byte [] cipherNumber =  (byte[]) ois.readObject(); 
+			Cipher rsaCipher = Cipher.getInstance("RSA/None/PKCS1Padding", "BC");
+			rsaCipher.init(Cipher.DECRYPT_MODE, this.equipement.maClePriv());
+			byte[] dectyptedText = rsaCipher.doFinal(cipherNumber);
+			nServeur=Integer.parseInt(new String(dectyptedText));
+			System.out.println("Le client a recu le nombre aléatoire du serveur.");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		// Emission de nClient
 		try {
-			nClient = new SecureRandom();
-			byte[] bytes = new byte[128];
-			nClient.nextBytes(bytes);
-			oos.writeObject(nClient); 
+			Cipher rsaCipher = Cipher.getInstance("RSA/None/PKCS1Padding", "BC");
+		    rsaCipher.init(Cipher.ENCRYPT_MODE, serveur.maClePub());
+			nClient = nServeur+1;
+			byte[] cipherNumber = rsaCipher.doFinal(Integer.toString(nClient).getBytes());
+			oos.writeObject(cipherNumber); 
 			oos.flush();
 			System.out.println("Le nombre aléatoire du client est envoyé.");
 			} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// Réception de la clé de session
 		try {
-			byte[] wrapped =(byte[]) ois.readObject();
+			byte [] cipherNumber =  (byte[]) ois.readObject(); 
 			Cipher rsaCipher = Cipher.getInstance("RSA/None/PKCS1Padding", "BC");
-			rsaCipher.init(Cipher.UNWRAP_MODE, this.equipement.maClePriv());
-			secretKey=(SecretKey) rsaCipher.unwrap(wrapped, "AES", Cipher.SECRET_KEY);
+			rsaCipher.init(Cipher.DECRYPT_MODE, this.equipement.maClePriv());
+			byte[] dectyptedText = rsaCipher.doFinal(cipherNumber);
+			flag=Integer.parseInt(new String(dectyptedText));
+			System.out.println();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(this.mode==true || this.syncPossible())
+		if(flag==1)
 		{
-			// Reception d’un certificat
+			// Réception de la clé de session
 			try {
-				SealedObject cipheredCert =(SealedObject) ois.readObject();
-				Cipher aesCipherCert = Cipher.getInstance("AES");
-				aesCipherCert.init(Cipher.ENCRYPT_MODE, secretKey);
-				Certificat res = (Certificat) cipheredCert.getObject(secretKey);
-				System.out.println("Le client a reçu le certificat.");
-				if(res.verifCertif(serveur.maClePub()))
-				{
-					System.out.println("Le serveur a bien certifié la clé publique du client, le client ajoute le serveur à son CA");
-					this.equipement.ajoutCA(serveur);
-					this.equipement.supprimerDA(serveur);
-					// Emission d’un certificat sur la clé publique du serveur
-					try {
-						Certificat certifCdeS = new Certificat(this.equipement.monNom(), serveur.monNom(), serveur.maClePub(), this.equipement.maClePriv(), 10);
-						Cipher aesCipher = Cipher.getInstance("AES");
-						aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-						SealedObject ciphered = new SealedObject(certifCdeS, aesCipher);
-						oos.writeObject(ciphered); 
-						oos.flush();
-						System.out.println("Le certificat du client certifiant la clé publique du serveur est envoyé");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					
-					
-					// Reception du DA/CA
-					try {
-						SealedObject ciphered =(SealedObject) ois.readObject();
-						Cipher aesCipher = Cipher.getInstance("AES");
-						aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-						dacaServeur = (HashSet<InfoEquipement>) ciphered.getObject(secretKey);
-						System.out.println("Le client a recu le DA/CA du serveur.");
-						this.equipement.sync(dacaServeur);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					// Emission du DA/CA
-					try {
-						dacaClient = new HashSet<InfoEquipement>();
-						dacaClient.addAll(this.equipement.monCA());
-						dacaClient.addAll(this.equipement.monDA());
-						
-						Cipher aesCipher = Cipher.getInstance("AES");
-						aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-						SealedObject ciphered = new SealedObject(dacaClient, aesCipher);
-						
-						oos.writeObject(ciphered); 
-						oos.flush();
-						System.out.println("Le DA/CA du client est envoyé.");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
+				byte[] wrapped =(byte[]) ois.readObject();
+				Cipher rsaCipher = Cipher.getInstance("RSA/None/PKCS1Padding", "BC");
+				rsaCipher.init(Cipher.UNWRAP_MODE, this.equipement.maClePriv());
+				secretKey=(SecretKey) rsaCipher.unwrap(wrapped, "AES", Cipher.SECRET_KEY);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+			if(this.mode==true || this.syncPossible())
+			{
+				// Reception d’un certificat
+				try {
+					SealedObject cipheredCert =(SealedObject) ois.readObject();
+					Cipher aesCipherCert = Cipher.getInstance("AES");
+					aesCipherCert.init(Cipher.ENCRYPT_MODE, secretKey);
+					Certificat res = (Certificat) cipheredCert.getObject(secretKey);
+					System.out.println("Le client a reçu le certificat.");
+					if(res.verifCertif(serveur.maClePub()))
+					{
+						System.out.println("Le serveur a bien certifié la clé publique du client, le client ajoute le serveur à son CA");
+						this.equipement.ajoutCA(serveur);
+						this.equipement.supprimerDA(serveur);
+						// Emission d’un certificat sur la clé publique du serveur
+						try {
+							Certificat certifCdeS = new Certificat(this.equipement.monNom(), serveur.monNom(), serveur.maClePub(), this.equipement.maClePriv(), 10);
+							Cipher aesCipher = Cipher.getInstance("AES");
+							aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+							SealedObject ciphered = new SealedObject(certifCdeS, aesCipher);
+							oos.writeObject(ciphered); 
+							oos.flush();
+							System.out.println("Le certificat du client certifiant la clé publique du serveur est envoyé");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						
+						// Reception du DA/CA
+						try {
+							SealedObject ciphered =(SealedObject) ois.readObject();
+							Cipher aesCipher = Cipher.getInstance("AES");
+							aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+							dacaServeur = (HashSet<InfoEquipement>) ciphered.getObject(secretKey);
+							System.out.println("Le client a recu le DA/CA du serveur.");
+							this.equipement.sync(dacaServeur);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						// Emission du DA/CA
+						try {
+							dacaClient = new HashSet<InfoEquipement>();
+							dacaClient.addAll(this.equipement.monCA());
+							dacaClient.addAll(this.equipement.monDA());
+							
+							Cipher aesCipher = Cipher.getInstance("AES");
+							aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+							SealedObject ciphered = new SealedObject(dacaClient, aesCipher);
+							
+							oos.writeObject(ciphered); 
+							oos.flush();
+							System.out.println("Le DA/CA du client est envoyé.");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
 		}
+		else
+		{
+			System.out.println("Le nombre aléatoire du client n'est pas le bon, arrêt des opérations.");
+		}
+		
+		
 	}
 }
